@@ -1,0 +1,8 @@
+fastapi>=0.141.1
+instructor>=1.16.0
+janus-swi>=1.5.3
+networkx>=3.6.1
+ollama>=0.6.2
+pydantic>=2.13.5
+pytest>=9.1.1
+uvicorn>=0.52.4

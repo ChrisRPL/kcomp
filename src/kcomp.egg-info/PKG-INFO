@@ -1,0 +1,104 @@
+Metadata-Version: 2.4
+Name: kcomp
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.141.1
+Requires-Dist: instructor>=1.16.0
+Requires-Dist: janus-swi>=1.5.3
+Requires-Dist: networkx>=3.6.1
+Requires-Dist: ollama>=0.6.2
+Requires-Dist: pydantic>=2.13.5
+Requires-Dist: pytest>=9.1.1
+Requires-Dist: uvicorn>=0.52.4
+
+# Knowledge Compiler (kcomp) MVP
+
+A formal operational rules engine designed to bridge the gap between natural language policies and verifiable, deterministic symbolic execution.
+
+## Overview
+
+The **Knowledge Compiler** uses a two-phase architecture:
+1. **Semantic Compiler (LLM)**: Parses natural language policies and extracts them into a strictly-typed Pydantic Graph Intermediate Representation (IR). 
+2. **Symbolic Engine (Prolog)**: Compiles the Graph IR into safe SWI-Prolog rules and executes them against runtime facts using a 4-valued deontic logic meta-interpreter (returning PROVEN, REFUTED, UNKNOWN, or CONFLICT) along with a hierarchical proof trace.
+
+## Features
+
+- **Deontic Logic**: Distinguishes between permissions, prohibitions, and obligations. Correctly evaluates conflict states when a permission and prohibition logically collide.
+- **Defeasible Reasoning**: Handles rule priorities and exceptions. E.g., an emergency rule overrides a standard prohibition without needing to rewrite the standard rule.
+- **Hierarchical Proof Traces**: Every decision comes with a detailed proof graph showing exactly which rules and facts were used to derive the conclusion.
+- **Web UI & REST API**: Includes a premium Vanilla HTML/CSS/JS dashboard comparing the audited Symbolic Engine against a raw LLM zero-shot baseline.
+
+## Project Structure
+
+```text
+kcomp/
+├── src/kcomp/
+│   ├── api/            # FastAPI backend and Web UI static assets
+│   ├── ir/             # KnowledgeIR Pydantic schemas
+│   ├── storage/        # SQLite/NetworkX IR persistence
+│   ├── backends/       
+│   │   └── prolog/     # Python-to-Prolog compiler
+│   ├── prolog/         # Core symbolic reasoning engine (core.pl, etc)
+│   ├── semantic/       # LLM Semantic extractor (instructor + ollama)
+│   └── runtime/        # Natural language case parser
+├── tests/              # Pytest pilot case suite (Evals)
+```
+
+## Quick Start & Setup
+
+### 1. Prerequisites
+- **Python 3.13+**
+- **uv** (fast Python package manager)
+- **SWI-Prolog** (must be installed system-wide for the `janus-swi` bridge to work)
+- **Ollama** (must be installed and running locally)
+
+### 2. Prepare the Environment
+Install the Python dependencies:
+```bash
+uv sync
+```
+
+Pull the required language model into Ollama for semantic extraction:
+```bash
+ollama pull llama3.1:8b
+```
+
+Make sure Ollama is running in the background before proceeding!
+
+## How to Run Everything
+
+### Running the Web Dashboard & API
+We provide a FastAPI server that hosts the REST API and the Web UI Dashboard. Start it with:
+
+```bash
+PYTHONPATH=src uv run uvicorn kcomp.api.app:app --reload
+```
+
+1. Open your browser and navigate to `http://localhost:8000`.
+2. **Policy Compilation**: Paste a natural language policy (like the "Remote Work Policy") into the Policy Document field and click **Compile to Graph IR & Prolog**. This will invoke Ollama to extract the IR and compile it to Prolog logic.
+3. **Runtime Evaluation**: Under "Runtime Case", input a Case ID (e.g., `alice`), describe the case facts (e.g., `Alice is a permanent employee who completed her probation and training.`), and state the proposition to prove (e.g., `permission(work_remotely(alice))`).
+4. **Compare Baselines**: Click **Evaluate Decision**. The UI will execute a simultaneous request to the Deterministic Symbolic Engine (Prolog) and a Zero-Shot Baseline LLM (Llama 3.1) so you can directly evaluate how the audited proof compares to a raw LLM hallucination.
+
+### Running Evals (Pilot Case Suite)
+
+We have a suite of hard-coded integration evals located in `tests/test_pilot_cases.py`. These tests bypass the semantic LLM extraction and run handwritten Knowledge IR graphs directly against the Prolog engine to mathematically prove the correctness of the 4-valued Deontic Defeasible Logic system.
+
+To run the evals:
+```bash
+PYTHONPATH=src uv run pytest tests/ -v
+```
+
+This will run the 5 pilot cases (Alice, Bob, Carol, Dave, Eve) verifying behavior for:
+- Standard permission paths
+- Expected conflicts
+- Higher-priority emergency overrides
+- Safe fallbacks for missing information (`UNKNOWN`)
+
+## How It Works Under the Hood
+
+1. **Policy Input**: Natural language text is provided.
+2. **LLM Extraction**: `kcomp.semantic.compiler` uses `instructor` and `llama3.1` to extract a structured `KnowledgeIR` graph (resolving concepts, rules, conditions, and actions).
+3. **Prolog Generation**: `kcomp.backends.prolog.compiler` generates `derives/3` and `overrides/2` Prolog facts from the KnowledgeIR graph.
+4. **Execution**: `kcomp/prolog/core.pl` evaluates runtime case facts against the generated rules using a custom 4-valued truth status engine, returning the final status alongside a comprehensive hierarchical proof.

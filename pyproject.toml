@@ -15,5 +15,11 @@ dependencies = [
     "uvicorn>=0.52.4",
 ]
 
+[project.scripts]
+kc = "kcomp.cli:app"
+
+[tool.uv]
+package = true
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
