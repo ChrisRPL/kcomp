@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
+    "instructor>=1.16.0",
     "janus-swi>=1.5.3",
     "networkx>=3.6.1",
     "ollama>=0.6.2",
