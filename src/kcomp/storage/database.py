@@ -1,6 +1,7 @@
-import sqlite3
 import json
-from typing import List, Dict, Any
+import sqlite3
+from typing import Any
+
 
 class GraphDatabase:
     def __init__(self, db_path: str = "knowledge.db"):
@@ -28,29 +29,38 @@ class GraphDatabase:
                 )
             """)
 
-    def insert_node(self, node_id: str, document_id: str, node_type: str, payload: dict):
+    def insert_node(
+        self, node_id: str, document_id: str, node_type: str, payload: dict
+    ):
         with self.conn:
             self.conn.execute(
                 "INSERT OR REPLACE INTO nodes (id, document_id, node_type, payload) VALUES (?, ?, ?, ?)",
-                (node_id, document_id, node_type, json.dumps(payload))
+                (node_id, document_id, node_type, json.dumps(payload)),
             )
 
-    def insert_edge(self, edge_id: str, source_id: str, target_id: str, edge_type: str, payload: dict = None):
+    def insert_edge(
+        self,
+        edge_id: str,
+        source_id: str,
+        target_id: str,
+        edge_type: str,
+        payload: dict = None,
+    ):
         if payload is None:
             payload = {}
         with self.conn:
             self.conn.execute(
                 "INSERT OR REPLACE INTO edges (id, source_id, target_id, edge_type, payload) VALUES (?, ?, ?, ?, ?)",
-                (edge_id, source_id, target_id, edge_type, json.dumps(payload))
+                (edge_id, source_id, target_id, edge_type, json.dumps(payload)),
             )
 
-    def get_nodes(self, document_id: str = None) -> List[Dict[str, Any]]:
+    def get_nodes(self, document_id: str = None) -> list[dict[str, Any]]:
         query = "SELECT * FROM nodes"
         params = ()
         if document_id:
             query += " WHERE document_id = ?"
             params = (document_id,)
-        
+
         cursor = self.conn.execute(query, params)
         nodes = []
         for row in cursor:
@@ -59,7 +69,7 @@ class GraphDatabase:
             nodes.append(node)
         return nodes
 
-    def get_edges(self) -> List[Dict[str, Any]]:
+    def get_edges(self) -> list[dict[str, Any]]:
         cursor = self.conn.execute("SELECT * FROM edges")
         edges = []
         for row in cursor:

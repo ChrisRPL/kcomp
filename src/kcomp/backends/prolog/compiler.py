@@ -1,5 +1,7 @@
 import os
-from kcomp.ir.models import KnowledgeIR, Rule, Condition, Action
+
+from kcomp.ir.models import KnowledgeIR
+
 
 class PrologCompiler:
     def __init__(self, output_dir: str = "src/kcomp/prolog/generated"):
@@ -13,12 +15,12 @@ class PrologCompiler:
             "",
             ":- discontiguous core:derives/3.",
             ":- discontiguous core:overrides/2.",
-            ""
+            "",
         ]
 
         for rule in ir.rules:
             rule_id = rule.id.lower()
-            
+
             # Build conditions
             conditions_prolog = []
             for cond in rule.conditions:
@@ -31,7 +33,7 @@ class PrologCompiler:
                 if cond.polarity == "negative":
                     term = f"neg({term})"
                 conditions_prolog.append(term)
-            
+
             # Build exceptions as negative conditions
             for exc in rule.exceptions:
                 if exc.effect == "defeat_rule":
@@ -42,11 +44,11 @@ class PrologCompiler:
                     else:
                         term = f"neg({pred.name})"
                     conditions_prolog.append(term)
-            
+
             conds_str = ",\n        ".join(conditions_prolog)
             if not conditions_prolog:
                 conds_str = "true"
-            
+
             # Build conclusion
             action = rule.conclusion
             pred = action.predicate
@@ -55,7 +57,7 @@ class PrologCompiler:
                 action_term = f"{pred.name}({args_str})"
             else:
                 action_term = pred.name
-            
+
             # Wrap in modality
             if action.modality == "obligation":
                 concl_str = f"obligation({action_term})"
@@ -64,33 +66,33 @@ class PrologCompiler:
             elif action.modality == "prohibition":
                 concl_str = f"prohibition({action_term})"
             else:
-                concl_str = action_term # Definition, classification, etc.
-            
-            lines.append(f"core:derives(")
+                concl_str = action_term  # Definition, classification, etc.
+
+            lines.append("core:derives(")
             lines.append(f"    {rule_id},")
             lines.append(f"    {concl_str},")
             if conditions_prolog:
-                lines.append(f"    [")
+                lines.append("    [")
                 lines.append(f"        {conds_str}")
-                lines.append(f"    ]")
+                lines.append("    ]")
             else:
-                lines.append(f"    []")
-            lines.append(f").\n")
-            
+                lines.append("    []")
+            lines.append(").\n")
+
             if rule.priority is not None:
                 # Assuming priority is just an int, we might need a way to link overriding
                 pass
 
-        # Handle explicit overrides if they were modelled separately 
+        # Handle explicit overrides if they were modelled separately
         # (For MVP, we might inject them manually or through a specific field)
         # We will add an extra method to inject raw overrides for the pilot.
 
         file_path = os.path.join(self.output_dir, f"{ir.document_id}.pl")
         with open(file_path, "w") as f:
             f.write("\n".join(lines))
-        
+
         return file_path
-    
+
     def add_override(self, document_id: str, overrider: str, overridden: str):
         file_path = os.path.join(self.output_dir, f"{document_id}.pl")
         with open(file_path, "a") as f:

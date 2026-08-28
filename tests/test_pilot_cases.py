@@ -1,85 +1,151 @@
-import pytest
 import janus_swi as janus
-from kcomp.ir.models import KnowledgeIR, Rule, Condition, Action, Predicate, Provenance, Modality
+
 from kcomp.backends.prolog.compiler import PrologCompiler
+from kcomp.ir.models import (
+    Action,
+    Condition,
+    KnowledgeIR,
+    Modality,
+    Predicate,
+    Provenance,
+    Rule,
+)
+
 
 def build_pilot_ir() -> KnowledgeIR:
-    prov = Provenance(document_id="doc_001", clause_id="C0", start_char=0, end_char=0, quote="")
-    
+    prov = Provenance(
+        document_id="doc_001", clause_id="C0", start_char=0, end_char=0, quote=""
+    )
+
     # R1: Permanent Employee if probation ended
     r1 = Rule(
         id="rc1",
         conditions=[
-            Condition(id="c1", predicate=Predicate(name="probation_ended", args=["Person"]), provenance=[prov])
+            Condition(
+                id="c1",
+                predicate=Predicate(name="probation_ended", args=["Person"]),
+                provenance=[prov],
+            )
         ],
-        conclusion=Action(id="a1", predicate=Predicate(name="permanent_employee", args=["Person"]), modality=Modality.CLASSIFICATION, provenance=[prov]),
+        conclusion=Action(
+            id="a1",
+            predicate=Predicate(name="permanent_employee", args=["Person"]),
+            modality=Modality.CLASSIFICATION,
+            provenance=[prov],
+        ),
         confidence=1.0,
-        provenance=[prov]
+        provenance=[prov],
     )
-    
+
     # R2: May work remotely if permanent, manager approved, security training completed
     r2 = Rule(
         id="rc2",
         conditions=[
-            Condition(id="c2", predicate=Predicate(name="permanent_employee", args=["Person"]), provenance=[prov]),
-            Condition(id="c3", predicate=Predicate(name="manager_approved_remote_work", args=["Person"]), provenance=[prov]),
-            Condition(id="c4", predicate=Predicate(name="security_training_completed", args=["Person"]), provenance=[prov])
+            Condition(
+                id="c2",
+                predicate=Predicate(name="permanent_employee", args=["Person"]),
+                provenance=[prov],
+            ),
+            Condition(
+                id="c3",
+                predicate=Predicate(
+                    name="manager_approved_remote_work", args=["Person"]
+                ),
+                provenance=[prov],
+            ),
+            Condition(
+                id="c4",
+                predicate=Predicate(
+                    name="security_training_completed", args=["Person"]
+                ),
+                provenance=[prov],
+            ),
         ],
-        conclusion=Action(id="a2", predicate=Predicate(name="work_remotely", args=["Person"]), modality=Modality.PERMISSION, provenance=[prov]),
+        conclusion=Action(
+            id="a2",
+            predicate=Predicate(name="work_remotely", args=["Person"]),
+            modality=Modality.PERMISSION,
+            provenance=[prov],
+        ),
         confidence=1.0,
-        provenance=[prov]
+        provenance=[prov],
     )
-    
+
     # R3: Essential staff may not work remotely during scheduled on-site duty
     r3 = Rule(
         id="rc3",
         conditions=[
-            Condition(id="c5", predicate=Predicate(name="essential_on_site_staff", args=["Person"]), provenance=[prov]),
-            Condition(id="c6", predicate=Predicate(name="scheduled_on_site_duty", args=["Person"]), provenance=[prov])
+            Condition(
+                id="c5",
+                predicate=Predicate(name="essential_on_site_staff", args=["Person"]),
+                provenance=[prov],
+            ),
+            Condition(
+                id="c6",
+                predicate=Predicate(name="scheduled_on_site_duty", args=["Person"]),
+                provenance=[prov],
+            ),
         ],
-        conclusion=Action(id="a3", predicate=Predicate(name="work_remotely", args=["Person"]), modality=Modality.PROHIBITION, provenance=[prov]),
+        conclusion=Action(
+            id="a3",
+            predicate=Predicate(name="work_remotely", args=["Person"]),
+            modality=Modality.PROHIBITION,
+            provenance=[prov],
+        ),
         confidence=1.0,
-        provenance=[prov]
+        provenance=[prov],
     )
-    
+
     # R4: During office emergency, may work remotely
     r4 = Rule(
         id="rc4",
         conditions=[
-            Condition(id="c7", predicate=Predicate(name="declared_office_emergency", args=[]), provenance=[prov])
+            Condition(
+                id="c7",
+                predicate=Predicate(name="declared_office_emergency", args=[]),
+                provenance=[prov],
+            )
         ],
-        conclusion=Action(id="a4", predicate=Predicate(name="work_remotely", args=["Person"]), modality=Modality.PERMISSION, provenance=[prov]),
+        conclusion=Action(
+            id="a4",
+            predicate=Predicate(name="work_remotely", args=["Person"]),
+            modality=Modality.PERMISSION,
+            provenance=[prov],
+        ),
         confidence=1.0,
-        provenance=[prov]
+        provenance=[prov],
     )
-    
+
     ir = KnowledgeIR(
         document_id="doc_001",
         concepts=[],
         definitions=[],
         rules=[r1, r2, r3, r4],
-        ambiguities=[]
+        ambiguities=[],
     )
     return ir
+
 
 def setup_prolog():
     # Load core
     janus.query_once("consult('src/kcomp/prolog/core.pl')")
     janus.query_once("consult('src/kcomp/prolog/truth_status.pl')")
-    
+
     # Compile IR and load
     ir = build_pilot_ir()
     compiler = PrologCompiler(output_dir="src/kcomp/prolog/generated")
     path = compiler.compile(ir)
-    
+
     # Manually add the override C5: R4 overrides R3
     compiler.add_override("doc_001", "rc4", "rc3")
-    
+
     janus.query_once(f"consult('{path}')")
+
 
 def add_fact(case: str, fact: str, val: bool):
     polarity = "positive" if val else "negative"
     janus.query_once(f"assertz(core:case_fact({case}, {fact}, {polarity}))")
+
 
 def get_status(case: str, prop: str) -> str:
     res = janus.query_once(f"truth_status:truth_status({case}, {prop}, Result)")
@@ -87,10 +153,11 @@ def get_status(case: str, prop: str) -> str:
         return res["Result"]["status"]
     return "unknown"
 
+
 def test_pilot_cases():
     setup_prolog()
     janus.query_once("retractall(core:case_fact(_,_,_))")
-    
+
     # Case 1: Alice (normal, permitted)
     add_fact("alice", "probation_ended(alice)", True)
     add_fact("alice", "manager_approved_remote_work(alice)", True)
@@ -109,7 +176,7 @@ def test_pilot_cases():
     add_fact("bob", "declared_office_emergency", False)
     assert get_status("bob", "prohibition(work_remotely(bob))") == "conflict"
     assert get_status("bob", "permission(work_remotely(bob))") == "conflict"
-    
+
     # Case 3: Carol (emergency overrides prohibition)
     add_fact("carol", "probation_ended(carol)", True)
     add_fact("carol", "manager_approved_remote_work(carol)", True)

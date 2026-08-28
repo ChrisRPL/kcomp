@@ -1,6 +1,8 @@
+
 import networkx as nx
-from typing import List
+
 from kcomp.ir.models import KnowledgeIR
+
 
 class GraphBuilder:
     def __init__(self):
@@ -24,16 +26,22 @@ class GraphBuilder:
 
             for condition in rule.conditions:
                 cond_id = condition.id
-                self.graph.add_node(cond_id, type="Condition", payload=condition.model_dump())
+                self.graph.add_node(
+                    cond_id, type="Condition", payload=condition.model_dump()
+                )
                 self.graph.add_edge(rule_id, cond_id, type="REQUIRES")
 
             action_id = rule.conclusion.id
-            self.graph.add_node(action_id, type="Action", payload=rule.conclusion.model_dump())
+            self.graph.add_node(
+                action_id, type="Action", payload=rule.conclusion.model_dump()
+            )
             self.graph.add_edge(rule_id, action_id, type="IMPLIES")
 
             for exception in rule.exceptions:
                 exc_id = exception.id
-                self.graph.add_node(exc_id, type="Exception", payload=exception.model_dump())
+                self.graph.add_node(
+                    exc_id, type="Exception", payload=exception.model_dump()
+                )
                 self.graph.add_edge(rule_id, exc_id, type="EXCEPTS")
 
             if rule.priority is not None:
@@ -43,7 +51,9 @@ class GraphBuilder:
         # Add Ambiguities
         for ambiguity in ir.ambiguities:
             ambig_id = ambiguity.id
-            self.graph.add_node(ambig_id, type="Ambiguity", payload=ambiguity.model_dump())
+            self.graph.add_node(
+                ambig_id, type="Ambiguity", payload=ambiguity.model_dump()
+            )
             for related_node in ambiguity.related_node_ids:
                 self.graph.add_edge(related_node, ambig_id, type="HAS_AMBIGUITY")
 
