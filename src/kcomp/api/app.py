@@ -6,9 +6,9 @@ import os
 import janus_swi as janus
 from ollama import Client
 
-from knowledge_compiler.semantic.compiler import SemanticCompiler
-from knowledge_compiler.backends.prolog.compiler import PrologCompiler
-from knowledge_compiler.runtime.case_parser import CaseParser
+from kcomp.semantic.compiler import SemanticCompiler
+from kcomp.backends.prolog.compiler import PrologCompiler
+from kcomp.runtime.case_parser import CaseParser
 
 app = FastAPI(title="Knowledge Compiler API")
 
@@ -39,8 +39,8 @@ def compile_policy(req: CompileRequest):
         prolog_comp = PrologCompiler(ir)
         prolog_code = prolog_comp.compile()
         # Save to file
-        os.makedirs("prolog/generated", exist_ok=True)
-        file_path = f"prolog/generated/{req.document_id}.pl"
+        os.makedirs("src/kcomp/prolog/generated", exist_ok=True)
+        file_path = f"src/kcomp/prolog/generated/{req.document_id}.pl"
         with open(file_path, "w") as f:
             f.write(prolog_code)
         
@@ -66,9 +66,9 @@ class ReasonResponse(BaseModel):
 @app.post("/api/reason", response_model=ReasonResponse)
 def reason(req: ReasonRequest):
     # Setup prolog
-    janus.query_once("consult('prolog/core.pl')")
-    janus.query_once("consult('prolog/truth_status.pl')")
-    janus.query_once(f"consult('prolog/generated/{req.document_id}.pl')")
+    janus.query_once("consult('src/kcomp/prolog/core.pl')")
+    janus.query_once("consult('src/kcomp/prolog/truth_status.pl')")
+    janus.query_once(f"consult('src/kcomp/prolog/generated/{req.document_id}.pl')")
     
     # Parse facts
     parser = CaseParser()

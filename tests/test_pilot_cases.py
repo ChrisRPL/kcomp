@@ -1,7 +1,7 @@
 import pytest
 import janus_swi as janus
-from knowledge_compiler.ir.models import KnowledgeIR, Rule, Condition, Action, Predicate, Provenance, Modality
-from knowledge_compiler.backends.prolog.compiler import PrologCompiler
+from kcomp.ir.models import KnowledgeIR, Rule, Condition, Action, Predicate, Provenance, Modality
+from kcomp.backends.prolog.compiler import PrologCompiler
 
 def build_pilot_ir() -> KnowledgeIR:
     prov = Provenance(document_id="doc_001", clause_id="C0", start_char=0, end_char=0, quote="")
@@ -64,12 +64,12 @@ def build_pilot_ir() -> KnowledgeIR:
 
 def setup_prolog():
     # Load core
-    janus.query_once("consult('prolog/core.pl')")
-    janus.query_once("consult('prolog/truth_status.pl')")
+    janus.query_once("consult('src/kcomp/prolog/core.pl')")
+    janus.query_once("consult('src/kcomp/prolog/truth_status.pl')")
     
     # Compile IR and load
     ir = build_pilot_ir()
-    compiler = PrologCompiler(output_dir="prolog/generated")
+    compiler = PrologCompiler(output_dir="src/kcomp/prolog/generated")
     path = compiler.compile(ir)
     
     # Manually add the override C5: R4 overrides R3

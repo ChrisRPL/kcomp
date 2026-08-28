@@ -1,6 +1,6 @@
 import networkx as nx
 from typing import List
-from knowledge_compiler.ir.models import KnowledgeIR
+from kcomp.ir.models import KnowledgeIR
 
 class GraphBuilder:
     def __init__(self):

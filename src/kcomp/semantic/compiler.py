@@ -1,7 +1,7 @@
 import instructor
 from ollama import Client
 from typing import List, Dict, Any
-from knowledge_compiler.ir.models import KnowledgeIR, Rule, Condition, Action, ExceptionSpec, Provenance, Predicate, Ambiguity
+from kcomp.ir.models import KnowledgeIR, Rule, Condition, Action, ExceptionSpec, Provenance, Predicate, Ambiguity
 import re
 
 class SemanticCompiler:
