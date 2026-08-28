@@ -82,8 +82,10 @@ def add_fact(case: str, fact: str, val: bool):
     janus.query_once(f"assertz(core:case_fact({case}, {fact}, {polarity}))")
 
 def get_status(case: str, prop: str) -> str:
-    res = janus.query_once(f"truth_status:status({case}, {prop}, Status)")
-    return res["Status"] if res and res.get("truth") else "unknown"
+    res = janus.query_once(f"truth_status:truth_status({case}, {prop}, Result)")
+    if res and "Result" in res:
+        return res["Result"]["status"]
+    return "unknown"
 
 def test_pilot_cases():
     setup_prolog()
