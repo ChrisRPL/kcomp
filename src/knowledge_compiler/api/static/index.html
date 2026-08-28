@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Compiler MVP</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--surface-color);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .panel {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        textarea, input {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            align-self: flex-start;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            color: var(--text-muted);
+        }
+
+        .split-view {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-box {
+            flex: 1;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 200px;
+            overflow-y: auto;
+            font-family: 'Menlo', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-proven { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .status-refuted { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .status-unknown { background-color: rgba(148, 163, 184, 0.2); color: var(--text-muted); }
+        .status-conflict { background-color: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+
+        .loader {
+            display: none;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Knowledge Compiler</h1>
+</header>
+
+<main>
+    <!-- Left Column: Inputs -->
+    <div style="display: flex; flex-direction: column; gap: 2rem; flex: 1;">
+        <div class="panel">
+            <h2>1. Policy Document</h2>
+            <textarea id="policyText" rows="10" placeholder="Paste your operational policy here..."></textarea>
+            <div>
+                <button id="compileBtn" onclick="compilePolicy()">Compile to Graph IR & Prolog</button>
+                <div id="compileLoader" class="loader"></div>
+            </div>
+            <div id="compileStatus" style="font-size: 0.9rem; color: var(--accent-green); display: none;">Compiled successfully!</div>
+        </div>
+
+        <div class="panel">
+            <h2>2. Runtime Case</h2>
+            <input type="text" id="caseId" placeholder="Case ID (e.g. alice)" value="case_01" />
+            <textarea id="caseText" rows="4" placeholder="Describe the case facts here..."></textarea>
+            <input type="text" id="proposition" placeholder="Proposition to prove (e.g. permission(work_remotely(alice)))" />
+            <div>
+                <button id="reasonBtn" onclick="evaluateCase()">Evaluate Decision</button>
+                <div id="reasonLoader" class="loader"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Results -->
+    <div class="panel" style="flex: 1.5;">
+        <h2>Evaluation Results</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Compare the deterministic compiler engine against a raw LLM zero-shot baseline.</p>
+        
+        <div class="split-view">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1rem;">Compiled Symbolic Engine</h3>
+                <div class="result-box" id="compilerResult">
+                    <span style="color: var(--text-muted)">Waiting for evaluation...</span>
+                </div>
+            </div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1rem;">Raw LLM Baseline (Llama 3.1)</h3>
+                <div class="result-box" id="baselineResult">
+                    <span style="color: var(--text-muted)">Waiting for evaluation...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const DOC_ID = "ui_doc_01";
+
+    async function compilePolicy() {
+        const text = document.getElementById('policyText').value;
+        if (!text) return alert("Please enter policy text.");
+
+        const btn = document.getElementById('compileBtn');
+        const loader = document.getElementById('compileLoader');
+        const status = document.getElementById('compileStatus');
+        
+        btn.disabled = true;
+        loader.style.display = 'inline-block';
+        status.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/compile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_id: DOC_ID, text })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                status.style.display = 'block';
+                console.log("Compiled IR:", data.ir_json);
+            } else {
+                alert("Compilation failed.");
+            }
+        } catch (e) {
+            alert("Error connecting to server.");
+        } finally {
+            btn.disabled = false;
+            loader.style.display = 'none';
+        }
+    }
+
+    async function evaluateCase() {
+        const policyText = document.getElementById('policyText').value;
+        const caseId = document.getElementById('caseId').value;
+        const caseText = document.getElementById('caseText').value;
+        const prop = document.getElementById('proposition').value;
+
+        if (!caseId || !caseText || !prop) return alert("Please fill all case fields.");
+
+        const btn = document.getElementById('reasonBtn');
+        const loader = document.getElementById('reasonLoader');
+        btn.disabled = true;
+        loader.style.display = 'inline-block';
+
+        const compilerBox = document.getElementById('compilerResult');
+        const baselineBox = document.getElementById('baselineResult');
+
+        compilerBox.innerHTML = '<span style="color: var(--text-muted)">Evaluating...</span>';
+        baselineBox.innerHTML = '<span style="color: var(--text-muted)">Evaluating...</span>';
+
+        try {
+            // Run both simultaneously
+            const compilerPromise = fetch('/api/reason', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_id: DOC_ID, case_id: caseId, case_text: caseText, proposition: prop })
+            }).then(r => r.json());
+
+            const baselinePromise = fetch('/api/reason_baseline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ policy_text: policyText, case_text: caseText, proposition: prop })
+            }).then(r => r.json());
+
+            const [compilerData, baselineData] = await Promise.all([compilerPromise, baselinePromise]);
+
+            // Render Compiler Result
+            const badgeClass = `status-${compilerData.status}`;
+            compilerBox.innerHTML = `
+<span class="status-badge ${badgeClass}">STATUS: ${compilerData.status.toUpperCase()}</span>
+
+<b>Positive Trace:</b>
+${compilerData.trace_positive || "None"}
+
+<b>Negative Trace:</b>
+${compilerData.trace_negative || "None"}
+            `;
+
+            // Render Baseline Result
+            baselineBox.innerHTML = baselineData.answer;
+
+        } catch (e) {
+            compilerBox.innerHTML = `<span style="color: var(--accent-red)">Error: ${e}</span>`;
+            baselineBox.innerHTML = `<span style="color: var(--accent-red)">Error: ${e}</span>`;
+        } finally {
+            btn.disabled = false;
+            loader.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
