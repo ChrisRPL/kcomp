@@ -8,6 +8,7 @@
         :root {
             --bg-color: #0f172a;
             --surface-color: #1e293b;
+            --surface-hover: #334155;
             --primary-color: #3b82f6;
             --primary-hover: #2563eb;
             --text-main: #f8fafc;
@@ -24,73 +25,70 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        header {
+        /* App Layout */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar - Knowledge Base */
+        .sidebar {
+            width: 320px;
             background-color: var(--surface-color);
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            box-sizing: border-box;
+            z-index: 10;
         }
 
-        h1 {
+        .sidebar-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-header h1 {
             margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.025em;
+            font-size: 1.3rem;
+            font-weight: 700;
             background: linear-gradient(to right, #60a5fa, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        main {
-            display: flex;
-            flex: 1;
-            padding: 2rem;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
+        
+        .sidebar-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
-        .panel {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
+        .sidebar-content {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             flex: 1;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        .panel h2 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        textarea, input {
+        textarea.policy-input {
             width: 100%;
-            background-color: #0f172a;
+            flex: 1;
+            background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             color: var(--text-main);
             padding: 1rem;
             border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.95rem;
+            font-family: 'Menlo', monospace;
+            font-size: 0.85rem;
+            resize: none;
             box-sizing: border-box;
-            resize: vertical;
-            transition: border-color 0.2s ease;
         }
 
-        textarea:focus, input:focus {
+        textarea.policy-input:focus {
             outline: none;
             border-color: var(--primary-color);
         }
@@ -104,40 +102,157 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
-            align-self: flex-start;
-        }
-
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        button:disabled {
-            background-color: var(--border-color);
-            cursor: not-allowed;
-            color: var(--text-muted);
-        }
-
-        .split-view {
             display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .result-box {
+        button:hover { background-color: var(--primary-hover); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: var(--border-color); cursor: not-allowed; color: var(--text-muted); }
+
+        /* Main Chat Area */
+        .chat-area {
             flex: 1;
-            background-color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: var(--bg-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-bubble.user {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.system {
+            background-color: transparent;
+            align-self: flex-start;
+            border: 1px solid transparent;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(transparent, var(--bg-color) 20%);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: var(--primary-color);
+        }
+
+        .chat-input-wrapper textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            padding: 0.8rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            max-height: 150px;
+        }
+
+        .chat-input-wrapper textarea:focus { outline: none; }
+        
+        .send-btn {
+            background-color: var(--primary-color);
+            padding: 0.6rem;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            align-self: flex-end;
+        }
+
+        /* Right Panel - Results */
+        .results-panel {
+            width: 450px;
+            background-color: var(--surface-color);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .results-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .results-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .results-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .comparison-card {
+            background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1rem;
-            min-height: 200px;
-            overflow-y: auto;
+        }
+
+        .comparison-card h3 {
+            margin: 0 0 1rem 0;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .comparison-card.symbolic h3 { color: var(--primary-color); }
+        .comparison-card.llm h3 { color: #a78bfa; }
+
+        .result-body {
             font-family: 'Menlo', monospace;
             font-size: 0.85rem;
             white-space: pre-wrap;
+            color: var(--text-main);
         }
 
         .status-badge {
@@ -155,89 +270,138 @@
         .status-conflict { background-color: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
 
         .loader {
-            display: none;
             border: 2px solid var(--border-color);
             border-top: 2px solid var(--primary-color);
             border-radius: 50%;
             width: 16px;
             height: 16px;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
-            vertical-align: middle;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 1rem 1.2rem;
+            background-color: transparent;
+            align-items: center;
+        }
+        .typing-dot {
+            width: 6px; height: 6px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        details {
+            background: rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        summary {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>Knowledge Compiler</h1>
-</header>
-
-<main>
-    <!-- Left Column: Inputs -->
-    <div style="display: flex; flex-direction: column; gap: 2rem; flex: 1;">
-        <div class="panel">
-            <h2>1. Policy Document</h2>
-            <textarea id="policyText" rows="10" placeholder="Paste your operational policy here..."></textarea>
-            <div>
-                <button id="compileBtn" onclick="compilePolicy()">Compile to Graph IR & Prolog</button>
-                <div id="compileLoader" class="loader"></div>
-            </div>
-            <div id="compileStatus" style="font-size: 0.9rem; color: var(--accent-green); display: none;">Compiled successfully!</div>
+<div class="app-container">
+    
+    <!-- Sidebar: Knowledge Base -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>Knowledge Compiler</h1>
+            <p>Define your organizational rules</p>
         </div>
-
-        <div class="panel">
-            <h2>2. Runtime Case</h2>
-            <input type="text" id="caseId" placeholder="Case ID (e.g. alice)" value="case_01" />
-            <textarea id="caseText" rows="4" placeholder="Describe the case facts here..."></textarea>
-            <input type="text" id="proposition" placeholder="Proposition to prove (e.g. permission(work_remotely(alice)))" />
-            <div>
-                <button id="reasonBtn" onclick="evaluateCase()">Evaluate Decision</button>
-                <div id="reasonLoader" class="loader"></div>
+        <div class="sidebar-content">
+            <textarea id="policyText" class="policy-input" placeholder="Paste your operational policy here... (e.g. Remote Work rules)"></textarea>
+            <button id="compileBtn" onclick="compilePolicy()">
+                <span id="compileBtnText">Compile Policy</span>
+                <div id="compileLoader" class="loader" style="display: none;"></div>
+            </button>
+            <div id="compileStatus" style="font-size: 0.85rem; color: var(--accent-green); display: none; text-align: center;">
+                ✓ Policy Compiled Successfully
             </div>
         </div>
-    </div>
+    </aside>
 
-    <!-- Right Column: Results -->
-    <div class="panel" style="flex: 1.5;">
-        <h2>Evaluation Results</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Compare the deterministic compiler engine against a raw LLM zero-shot baseline.</p>
-        
-        <div class="split-view">
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-                <h3 style="margin: 0; font-size: 1rem;">Compiled Symbolic Engine</h3>
-                <div class="result-box" id="compilerResult">
-                    <span style="color: var(--text-muted)">Waiting for evaluation...</span>
-                </div>
-            </div>
-            
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-                <h3 style="margin: 0; font-size: 1rem;">Raw LLM Baseline (Llama 3.1)</h3>
-                <div class="result-box" id="baselineResult">
-                    <span style="color: var(--text-muted)">Waiting for evaluation...</span>
-                </div>
+    <!-- Main: Chat Area -->
+    <main class="chat-area">
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-bubble system">
+                👋 Hello! Please paste a policy on the left and click "Compile". Then you can ask me any scenario questions here.
             </div>
         </div>
-    </div>
-</main>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea id="chatInput" rows="1" placeholder="Describe a scenario and ask a question..." onkeydown="handleEnter(event)"></textarea>
+                <button class="send-btn" onclick="sendChatMessage()" id="sendBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Right Sidebar: Results Comparison -->
+    <aside class="results-panel">
+        <div class="results-header">
+            <h2>Evaluation Insights</h2>
+        </div>
+        <div class="results-content" id="resultsContent">
+            <div style="color: var(--text-muted); text-align: center; margin-top: 2rem; font-size: 0.9rem;">
+                Ask a question to see the deterministic symbolic engine compared to the raw LLM.
+            </div>
+        </div>
+    </aside>
+
+</div>
 
 <script>
     const DOC_ID = "ui_doc_01";
+    let CURRENT_IR = null;
+    let chatHistory = [];
+    let caseCounter = 1;
+
+    // Auto-resize textarea
+    const chatInput = document.getElementById('chatInput');
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        if (!this.value) this.style.height = 'auto';
+    });
+
+    function handleEnter(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    }
 
     async function compilePolicy() {
-        const text = document.getElementById('policyText').value;
-        if (!text) return alert("Please enter policy text.");
+        const text = document.getElementById('policyText').value.trim();
+        if (!text) {
+            alert("Please enter policy text first.");
+            return;
+        }
 
         const btn = document.getElementById('compileBtn');
         const loader = document.getElementById('compileLoader');
         const status = document.getElementById('compileStatus');
+        const btnText = document.getElementById('compileBtnText');
         
         btn.disabled = true;
+        btnText.innerText = "Compiling...";
         loader.style.display = 'inline-block';
         status.style.display = 'none';
 
@@ -251,74 +415,152 @@
             
             if (data.success) {
                 status.style.display = 'block';
-                console.log("Compiled IR:", data.ir_json);
+                CURRENT_IR = JSON.parse(data.ir_json);
+                addSystemMessage("Policy compiled successfully! You can now ask questions about it.");
             } else {
-                alert("Compilation failed.");
+                addSystemMessage("❌ Compilation failed.");
             }
         } catch (e) {
-            alert("Error connecting to server.");
+            addSystemMessage("❌ Error connecting to server.");
         } finally {
             btn.disabled = false;
+            btnText.innerText = "Compile Policy";
             loader.style.display = 'none';
         }
     }
 
-    async function evaluateCase() {
+    function addSystemMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-bubble system';
+        msgDiv.innerText = text;
+        document.getElementById('chatMessages').appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const msgs = document.getElementById('chatMessages');
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    async function sendChatMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        if (!CURRENT_IR) {
+            alert("Please compile a policy first.");
+            return;
+        }
+
         const policyText = document.getElementById('policyText').value;
-        const caseId = document.getElementById('caseId').value;
-        const caseText = document.getElementById('caseText').value;
-        const prop = document.getElementById('proposition').value;
 
-        if (!caseId || !caseText || !prop) return alert("Please fill all case fields.");
+        // Reset input
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        
+        // Add User Message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-bubble user';
+        userDiv.innerText = text;
+        const msgs = document.getElementById('chatMessages');
+        msgs.appendChild(userDiv);
+        scrollToBottom();
 
-        const btn = document.getElementById('reasonBtn');
-        const loader = document.getElementById('reasonLoader');
-        btn.disabled = true;
-        loader.style.display = 'inline-block';
+        // Add typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+        msgs.appendChild(typingDiv);
+        scrollToBottom();
 
-        const compilerBox = document.getElementById('compilerResult');
-        const baselineBox = document.getElementById('baselineResult');
+        // Reset Results Panel
+        const resultsContent = document.getElementById('resultsContent');
+        resultsContent.innerHTML = \`
+            <div style="color: var(--text-muted); text-align: center; margin-top: 2rem;">
+                <div class="loader" style="margin: 0 auto; display: block; border-top-color: var(--text-muted)"></div>
+                <p style="margin-top: 1rem; font-size: 0.85rem;">Evaluating scenario...</p>
+            </div>
+        \`;
 
-        compilerBox.innerHTML = '<span style="color: var(--text-muted)">Evaluating...</span>';
-        baselineBox.innerHTML = '<span style="color: var(--text-muted)">Evaluating...</span>';
+        // Extract predicates for context
+        let context_predicates = [];
+        if (CURRENT_IR && CURRENT_IR.concepts) {
+            context_predicates = CURRENT_IR.concepts.map(c => c.name);
+        }
+
+        const currentCaseId = "case_" + (caseCounter++);
 
         try {
             // Run both simultaneously
             const compilerPromise = fetch('/api/reason', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ document_id: DOC_ID, case_id: caseId, case_text: caseText, proposition: prop })
+                body: JSON.stringify({ 
+                    document_id: DOC_ID, 
+                    case_id: currentCaseId, 
+                    scenario_text: text, 
+                    context_predicates: context_predicates 
+                })
             }).then(r => r.json());
 
             const baselinePromise = fetch('/api/reason_baseline', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ policy_text: policyText, case_text: caseText, proposition: prop })
+                body: JSON.stringify({ policy_text: policyText, scenario_text: text })
             }).then(r => r.json());
 
             const [compilerData, baselineData] = await Promise.all([compilerPromise, baselinePromise]);
 
-            // Render Compiler Result
-            const badgeClass = `status-${compilerData.status}`;
-            compilerBox.innerHTML = `
-<span class="status-badge ${badgeClass}">STATUS: ${compilerData.status.toUpperCase()}</span>
+            // Remove typing indicator
+            msgs.removeChild(typingDiv);
+
+            // Add system reply
+            const replyDiv = document.createElement('div');
+            replyDiv.className = 'chat-bubble system';
+            
+            let statusText = compilerData.status.toUpperCase();
+            if (statusText === 'PROVEN') replyDiv.innerHTML = "✅ <b>Yes</b>. " + (compilerData.trace_positive || "");
+            else if (statusText === 'REFUTED') replyDiv.innerHTML = "❌ <b>No</b>. " + (compilerData.trace_negative || "");
+            else replyDiv.innerHTML = "⚠️ <b>Unknown</b>. I couldn't definitively prove or refute this based on the policy.";
+            
+            msgs.appendChild(replyDiv);
+            scrollToBottom();
+
+            // Render Results Panel
+            const badgeClass = \`status-\${compilerData.status}\`;
+            let factsHtml = compilerData.extracted_facts ? compilerData.extracted_facts.map(f => \`<li>\${f.polarity === 'positive' ? '' : 'not '}\${f.predicate}(\${f.args.join(', ')})</li>\`).join('') : '';
+
+            resultsContent.innerHTML = \`
+                <div class="comparison-card symbolic">
+                    <h3>⚡ Symbolic Engine</h3>
+                    <div class="result-body">
+<details>
+    <summary>System Interpretation</summary>
+    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-main);">
+        <b>Proposition:</b> <code>\${compilerData.extracted_proposition || "Unknown"}</code><br><br>
+        <b>Facts:</b>
+        <ul style="margin-top: 0.2rem; padding-left: 1.2rem;">\${factsHtml}</ul>
+    </div>
+</details>
+
+<span class="status-badge \${badgeClass}">STATUS: \${statusText}</span>
 
 <b>Positive Trace:</b>
-${compilerData.trace_positive || "None"}
+\${compilerData.trace_positive || "None"}
 
 <b>Negative Trace:</b>
-${compilerData.trace_negative || "None"}
-            `;
+\${compilerData.trace_negative || "None"}
+                    </div>
+                </div>
 
-            // Render Baseline Result
-            baselineBox.innerHTML = baselineData.answer;
+                <div class="comparison-card llm">
+                    <h3>🤖 Raw LLM Baseline</h3>
+                    <div class="result-body">\${baselineData.answer}</div>
+                </div>
+            \`;
 
         } catch (e) {
-            compilerBox.innerHTML = `<span style="color: var(--accent-red)">Error: ${e}</span>`;
-            baselineBox.innerHTML = `<span style="color: var(--accent-red)">Error: ${e}</span>`;
-        } finally {
-            btn.disabled = false;
-            loader.style.display = 'none';
+            msgs.removeChild(typingDiv);
+            addSystemMessage("❌ An error occurred during evaluation.");
+            resultsContent.innerHTML = \`<div style="color: var(--accent-red); padding: 1rem;">Error: \${e}</div>\`;
         }
     }
 </script>

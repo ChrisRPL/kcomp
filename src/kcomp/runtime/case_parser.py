@@ -21,6 +21,9 @@ class Fact(BaseModel):
 class CaseFacts(BaseModel):
     case_id: str
     facts: list[Fact]
+    proposition_to_prove: str | None = Field(
+        None, description="The formal Prolog proposition to evaluate based on the user's question, e.g., 'permission(work_remotely(alice))' or 'obligation(notify(bob))'"
+    )
 
 
 class CaseParser:
@@ -40,15 +43,17 @@ class CaseParser:
     ) -> CaseFacts:
         pred_hint = ""
         if context_predicates:
-            pred_hint = f"\nFor context, the policy uses these predicates: {', '.join(context_predicates)}\nTry to use these if they match."
+            pred_hint = f"\nFor context, the policy uses these predicates: {', '.join(context_predicates)}\nTry to use these if they match when extracting facts and formalizing the proposition to prove."
 
         prompt = f"""
-        You are a Case Fact Extractor. Extract the explicit facts from the given case text.
-        Do not infer unstated facts. If something is unknown, do not output it as negative.
+        You are a Scenario Analyzer.
+        1. Extract the explicit facts from the given scenario text. Do not infer unstated facts.
+        2. Identify the core question the user is asking and formalize it as a Prolog proposition (e.g., 'permission(work_remotely(alice))').
+        
         {pred_hint}
         
-        Case ID: {case_id}
-        Case Text:
+        Scenario ID: {case_id}
+        Scenario Text:
         {case_text}
         """
 
@@ -66,4 +71,4 @@ class CaseParser:
             return extracted
         except Exception as e:
             print(f"Failed to extract facts for case {case_id}: {e}")
-            return CaseFacts(case_id=case_id, facts=[])
+            return CaseFacts(case_id=case_id, facts=[], proposition_to_prove=None)

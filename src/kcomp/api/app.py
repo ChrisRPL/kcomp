@@ -58,16 +58,17 @@ def compile_policy(req: CompileRequest):
 
 class ReasonRequest(BaseModel):
     case_id: str
-    case_text: str
-    proposition: str
+    scenario_text: str
     document_id: str
+    context_predicates: list[str] = []
 
 
 class ReasonResponse(BaseModel):
     status: str
     trace_positive: str | None
     trace_negative: str | None
-
+    extracted_proposition: str | None
+    extracted_facts: list[dict]
 
 @app.post("/api/reason", response_model=ReasonResponse)
 def reason(req: ReasonRequest):
@@ -76,9 +77,13 @@ def reason(req: ReasonRequest):
     janus.query_once("consult('src/kcomp/prolog/truth_status.pl')")
     janus.query_once(f"consult('src/kcomp/prolog/generated/{req.document_id}.pl')")
 
-    # Parse facts
+    # Parse facts and proposition
     parser = CaseParser()
-    case_facts = parser.parse_case(req.case_id, req.case_text)
+    case_facts = parser.parse_case(req.case_id, req.scenario_text, req.context_predicates)
+    
+    proposition = case_facts.proposition_to_prove
+    if not proposition:
+        proposition = "unknown_proposition"
 
     # Load facts into Prolog
     janus.query_once("retractall(core:case_fact(_,_,_))")
@@ -91,7 +96,7 @@ def reason(req: ReasonRequest):
 
     # Evaluate
     res = janus.query_once(
-        f"truth_status:truth_status({req.case_id}, {req.proposition}, Result)"
+        f"truth_status:truth_status({req.case_id}, {proposition}, Result)"
     )
 
     if res and "Result" in res:
@@ -100,15 +105,16 @@ def reason(req: ReasonRequest):
             status=result_dict.get("status", "unknown"),
             trace_positive=result_dict.get("trace_positive"),
             trace_negative=result_dict.get("trace_negative"),
+            extracted_proposition=proposition,
+            extracted_facts=[f.model_dump() for f in case_facts.facts]
         )
 
-    return ReasonResponse(status="unknown", trace_positive=None, trace_negative=None)
+    return ReasonResponse(status="unknown", trace_positive=None, trace_negative=None, extracted_proposition=proposition, extracted_facts=[f.model_dump() for f in case_facts.facts])
 
 
 class BaselineRequest(BaseModel):
     policy_text: str
-    case_text: str
-    proposition: str
+    scenario_text: str
 
 
 class BaselineResponse(BaseModel):
@@ -122,11 +128,10 @@ def reason_baseline(req: BaselineRequest):
     Given the following policy:
     {req.policy_text}
     
-    And the following case:
-    {req.case_text}
+    And the following scenario and question:
+    {req.scenario_text}
     
-    Determine if the following proposition is proven, refuted, or unknown:
-    {req.proposition}
+    Determine if the action asked about in the scenario is permitted/obligated/prohibited according to the policy.
     
     Provide your reasoning, and then conclude with STATUS: [PROVEN/REFUTED/UNKNOWN/CONFLICT].
     """
