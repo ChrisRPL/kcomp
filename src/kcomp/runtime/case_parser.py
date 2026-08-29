@@ -28,7 +28,7 @@ class CaseFacts(BaseModel):
 
 class CaseParser:
     def __init__(
-        self, model_name: str = "llama3.1:8b", host: str = "http://localhost:11434"
+        self, model_name: str = "llama3.1:8b-instruct-q4_0", host: str = "http://localhost:11434"
     ):
         base_url = f"{host}/v1"
         self.client = instructor.from_openai(

@@ -11,7 +11,7 @@ from kcomp.ir.models import (
 
 class SemanticCompiler:
     def __init__(
-        self, model_name: str = "llama3.1:8b", host: str = "http://localhost:11434"
+        self, model_name: str = "llama3.1:8b-instruct-q4_0", host: str = "http://localhost:11434"
     ):
         # Setup ollama client with instructor
         # Ollama supports tool calling and structured outputs well with llama3.1
