@@ -473,12 +473,12 @@
 
         // Reset Results Panel
         const resultsContent = document.getElementById('resultsContent');
-        resultsContent.innerHTML = \`
+        resultsContent.innerHTML = `
             <div style="color: var(--text-muted); text-align: center; margin-top: 2rem;">
                 <div class="loader" style="margin: 0 auto; display: block; border-top-color: var(--text-muted)"></div>
                 <p style="margin-top: 1rem; font-size: 0.85rem;">Evaluating scenario...</p>
             </div>
-        \`;
+        `;
 
         // Extract predicates for context
         let context_predicates = [];
@@ -525,42 +525,42 @@
             scrollToBottom();
 
             // Render Results Panel
-            const badgeClass = \`status-\${compilerData.status}\`;
-            let factsHtml = compilerData.extracted_facts ? compilerData.extracted_facts.map(f => \`<li>\${f.polarity === 'positive' ? '' : 'not '}\${f.predicate}(\${f.args.join(', ')})</li>\`).join('') : '';
+            const badgeClass = `status-${compilerData.status}`;
+            let factsHtml = compilerData.extracted_facts ? compilerData.extracted_facts.map(f => `<li>${f.polarity === 'positive' ? '' : 'not '}${f.predicate}(${f.args.join(', ')})</li>`).join('') : '';
 
-            resultsContent.innerHTML = \`
+            resultsContent.innerHTML = `
                 <div class="comparison-card symbolic">
                     <h3>⚡ Symbolic Engine</h3>
                     <div class="result-body">
 <details>
     <summary>System Interpretation</summary>
     <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-main);">
-        <b>Proposition:</b> <code>\${compilerData.extracted_proposition || "Unknown"}</code><br><br>
+        <b>Proposition:</b> <code>${compilerData.extracted_proposition || "Unknown"}</code><br><br>
         <b>Facts:</b>
-        <ul style="margin-top: 0.2rem; padding-left: 1.2rem;">\${factsHtml}</ul>
+        <ul style="margin-top: 0.2rem; padding-left: 1.2rem;">${factsHtml}</ul>
     </div>
 </details>
 
-<span class="status-badge \${badgeClass}">STATUS: \${statusText}</span>
+<span class="status-badge ${badgeClass}">STATUS: ${statusText}</span>
 
 <b>Positive Trace:</b>
-\${compilerData.trace_positive || "None"}
+${compilerData.trace_positive || "None"}
 
 <b>Negative Trace:</b>
-\${compilerData.trace_negative || "None"}
+${compilerData.trace_negative || "None"}
                     </div>
                 </div>
 
                 <div class="comparison-card llm">
                     <h3>🤖 Raw LLM Baseline</h3>
-                    <div class="result-body">\${baselineData.answer}</div>
+                    <div class="result-body">${baselineData.answer}</div>
                 </div>
-            \`;
+            `;
 
         } catch (e) {
             msgs.removeChild(typingDiv);
             addSystemMessage("❌ An error occurred during evaluation.");
-            resultsContent.innerHTML = \`<div style="color: var(--accent-red); padding: 1rem;">Error: \${e}</div>\`;
+            resultsContent.innerHTML = `<div style="color: var(--accent-red); padding: 1rem;">Error: ${e}</div>`;
         }
     }
 </script>
