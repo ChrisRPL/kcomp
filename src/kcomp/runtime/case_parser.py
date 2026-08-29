@@ -1,7 +1,7 @@
 from typing import Literal
 
 import instructor
-from ollama import Client
+from openai import OpenAI
 from pydantic import BaseModel, Field
 
 
@@ -30,8 +30,9 @@ class CaseParser:
     def __init__(
         self, model_name: str = "llama3.1:8b", host: str = "http://localhost:11434"
     ):
-        self.client = instructor.from_ollama(
-            Client(host=host), mode=instructor.Mode.JSON
+        base_url = f"{host}/v1"
+        self.client = instructor.from_openai(
+            OpenAI(base_url=base_url, api_key="ollama"), mode=instructor.Mode.JSON
         )
         self.model_name = model_name
 

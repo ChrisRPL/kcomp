@@ -2,7 +2,7 @@ import re
 from typing import Any
 
 import instructor
-from ollama import Client
+from openai import OpenAI
 
 from kcomp.ir.models import (
     KnowledgeIR,
@@ -15,8 +15,9 @@ class SemanticCompiler:
     ):
         # Setup ollama client with instructor
         # Ollama supports tool calling and structured outputs well with llama3.1
-        self.client = instructor.from_ollama(
-            Client(host=host), mode=instructor.Mode.JSON
+        base_url = f"{host}/v1"
+        self.client = instructor.from_openai(
+            OpenAI(base_url=base_url, api_key="ollama"), mode=instructor.Mode.JSON
         )
         self.model_name = model_name
 
